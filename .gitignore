@@ -1,0 +1,11 @@
+data
+log
+**.log
+checkpoint
+tensorboard
+logs
+test
+.idea/
+__pycache__/
+baseline/getnext/dataset/
+baseline/getnext/runs/
