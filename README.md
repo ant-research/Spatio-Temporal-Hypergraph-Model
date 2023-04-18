@@ -9,7 +9,7 @@ and intra-user trajectories correlations while incorporating spatio-temporal con
 Comprehensive experiments conducted on three real-world datasets have demonstrated the superiority of STHGCN in the task of next-POI recommendation,
 outperforming baseline models by a large margin. For more information, please see our paper **Spatio-Temporal Hypergraph Learning for Next POI Recommendation** (Yan *et al. 2023*).
 
-![1](Hypergraph.png "Mutl-Level Hypergraph")
+![1](Hypergraph.png=200x300 "Mutl-Level Hypergraph")
 ![2](STHGCN.png "STHGCN Overall Framework")
 
 ## Installation
@@ -58,11 +58,11 @@ polygon of every state in U.S. To get the raw data of CA used for preprocessing 
     python generate_ca_raw.py
     ```
 
-**If you want to compare your model with our work in the same preprocess setting, 
-we strongly suggest to directly use the train/validate/test sample files in preprocessed directory.**
+If you want to compare your model with our work in the same preprocess setting, 
+we strongly suggest to directly use the train/validate/test sample files in preprocessed directory.
 
 ### Statistical Information
-After preprocessing (some work show the statistics before preprocessidng), the key statistics of the three dtasets are shown below.
+After preprocessing (some works show the statistics before preprocessing), the key statistics of the three dtasets are shown below.
 
 | Dataset Name   | #user | #poi    | #category | #check-in | #trajectory | #training sample| #validation sample| #testing sample|
 |----------------|-------|---------|-----------|-----------|-------------|-----------------|-------------------|----------------|
@@ -73,7 +73,7 @@ After preprocessing (some work show the statistics before preprocessidng), the k
 ### Original Link
 In case of some readers feel confused from the data provided by our work and by other works, here we introduce where and how our data comes from.
 
-Actually, we suffered a lot from searching for the valid data from previous work. [STAN](https://github.com/yingtaoluo/Spatial-Temporal-Attention-Network-for-POI-Recommendation)
+Actually, we suffered a lot from searching for the valid data from previous works. [STAN](https://github.com/yingtaoluo/Spatial-Temporal-Attention-Network-for-POI-Recommendation)
 provides the **Raw** data of NYC, TKY and CA, but these data lack category information. [GETNext](https://github.com/songyangme/GETNext) only
 provides the **Preprocessed** data of NYC, while TKY and CA are missing. We use the raw NYC data from STAN's link, and preprocess them based on the 
 description from GETNext. Unfortunately, there still be a minor gap between our preprocessed NYC data with what is provided by GETNext. 
