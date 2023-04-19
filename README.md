@@ -10,7 +10,7 @@ Comprehensive experiments conducted on three real-world datasets have demonstrat
 outperforming baseline models by a large margin. For more information, please see our paper **Spatio-Temporal Hypergraph Learning for Next POI Recommendation** (Yan *et al. 2023*).
 
 + Multi-Level Hypergraph
-![Multi-Level Hypergraph](Hypergraph.png)
+![Multi-Level Hypergraph](Hypergraph.jpeg)
 
 + Model Framework
 ![STHGCN Overall Framework](STHGCN.png)
