@@ -10,19 +10,10 @@ Comprehensive experiments conducted on three real-world datasets have demonstrat
 outperforming baseline models by a large margin. For more information, please see our paper **Spatio-Temporal Hypergraph Learning for Next POI Recommendation** (Yan *et al. 2023*).
 
 + Multi-Level Hypergraph
-<div style="width: 35%; height: 35%; margin-left: auto; margin-right: auto">
-
-  ![Multi-Level Hypergraph](Hypergraph.png)
-
-</div>
+![Multi-Level Hypergraph](Hypergraph.png)
 
 + Model Framework
-<div style="width: 100%; height: 100%">
-
-  ![STHGCN Overall Framework](STHGCN.png)
-
-</div>
-
+![STHGCN Overall Framework](STHGCN.png)
 
 ## Installation
 1. Clone the repository (If showing error of no permission, need to first [add a new SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).):
