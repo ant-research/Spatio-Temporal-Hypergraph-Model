@@ -1,4 +1,4 @@
-## STHGCN
+# STHGCN
 This repository includes the implementation details of the method STHGCN and helps readers to reproduce the results in the paper
 **Spatio-Temporal Hypergraph Learning for Next POI Recommendation**, whose objective is to utilize hypergraph convolution networks to 
 model diverse user behaviors in the next-POI recommendation task. 
@@ -9,8 +9,20 @@ and intra-user trajectories correlations while incorporating spatio-temporal con
 Comprehensive experiments conducted on three real-world datasets have demonstrated the superiority of STHGCN in the task of next-POI recommendation,
 outperforming baseline models by a large margin. For more information, please see our paper **Spatio-Temporal Hypergraph Learning for Next POI Recommendation** (Yan *et al. 2023*).
 
-![1](Hypergraph.png=200x300 "Mutl-Level Hypergraph")
-![2](STHGCN.png "STHGCN Overall Framework")
++ Multi-Level Hypergraph
+<div style="width: 35%; height: 35%; margin-left: auto; margin-right: auto">
+
+  ![Multi-Level Hypergraph](Hypergraph.png)
+
+</div>
+
++ Model Framework
+<div style="width: 100%; height: 100%">
+
+  ![STHGCN Overall Framework](STHGCN.png)
+
+</div>
+
 
 ## Installation
 1. Clone the repository (If showing error of no permission, need to first [add a new SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account).):
@@ -95,6 +107,7 @@ Thanks for all the data providers.
 To reproduce the main results in our paper. Please follow the steps below.
 
 ### Best Performance
+To know the meaning of every config in yaml file, please refer to [conf/README.md](https://github.com/ant-research/Spatio-Temporal-Hypergraph-Model/blob/main/conf/README.md).
 + NYC
     ```shell
     python run.py -f best_conf/nyc.yml
