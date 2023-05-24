@@ -36,8 +36,12 @@ outperforming baseline models by a large margin. For more information, please se
 ## Hardware
 Here are the minimum requirements of the hardware including CPU and GPU.
 
-+ CPU: core 8, memory 30GB
++ CPU: core 16, memory 30GB
 + GPU: Tesla V100 (16GB)
+
+Important messages you need to know:
+1. For Foursquare-TKY dataset, if the first value of hyperparameter sizes is more than 300 such as "400-240", please use 32GB GPU; 
+2. If you use other type of GPU like Tesla P100, it may produce different results even if you use the best configuration file with the same random seed.
 
 ## Dataset
 The Foursquare-NYC dataset is collected in New York city and the Foursquare-TKY dataset is collected in Tokyo over 11 months 
@@ -62,10 +66,13 @@ polygon of every state in U.S. To get the raw data of CA used for preprocessing 
     ```
 
 If you want to compare your model with our work in the same preprocess setting, 
-we strongly suggest to directly use the train/validate/test sample files in preprocessed directory.
+we strongly suggest to directly use the `sample.csv`, `train_sample.csv`, `validate_sample.csv`, and `test_sample.csv` 
+sample files in the preprocessed directories.
 
 ### Statistical Information
-After preprocessing (some works show the statistics before preprocessing), the key statistics of the three dtasets are shown below.
+After preprocessing (some works only show the statistics before preprocessing), the key statistics of the three dtasets are shown below.
+The first 6 columns are calculated based on `sample.csv` which is all the samples before removing the unseen user or poi. Meanwhile, the last
+3 columns are calculated based on `train_sample.csv`, `validate_sample.csv` and `test_sample.csv`.
 
 | Dataset Name   | #user | #poi    | #category | #check-in | #trajectory | #training sample| #validation sample| #testing sample|
 |----------------|-------|---------|-----------|-----------|-------------|-----------------|-------------------|----------------|
@@ -82,7 +89,8 @@ provides the **Preprocessed** data of NYC, while TKY and CA are missing. We use 
 description from GETNext. Unfortunately, there still be a minor gap between our preprocessed NYC data with what is provided by GETNext. 
 
 For fair comparison of different models, for NYC, we download the preprocessed files from GETNext; For TKY and CA, we download them from the link provided 
-by STAN, we also fetch the category information from [IRenMF](https://dl.acm.org/doi/10.1145/2661829.2662002).
+by STAN, we also fetch the category information from [IRenMF](https://dl.acm.org/doi/10.1145/2661829.2662002). We run GETNext model with our preprocessed data and
+the performances are only a little worse (~0.01 on Acc@1) than what are reported in thier paper, so we just use the performances reported in their paper.
 
 Thanks for all the data providers.
 
@@ -97,31 +105,78 @@ Thanks for all the data providers.
 ## Main Experimental Results
 To reproduce the main results in our paper. Please follow the steps below.
 
-### Best Performance
+### Main Performance
 To know the meaning of every config in yaml file, please refer to [conf/README.md](https://github.com/ant-research/Spatio-Temporal-Hypergraph-Model/blob/main/conf/README.md).
-+ NYC
-    ```shell
-    python run.py -f best_conf/nyc.yml
-    ```
-+ TKY
-    ```shell
-    python run.py -f best_conf/tky.yml
-    ```
-+ CA
-    ```shell
-    python run.py -f best_conf/ca.yml
-    ```
 
-We can reproduce the best performance of our model as shown below.
+We can reproduce the best performance of our model with the script below. Please choose 'nyc', 'tky', 
+or 'ca' for *{dataset_name}*.
+```shell
+python run.py -f best_conf/{dataset_name}.yml
+```
 
-| Dataset Name | Acc@1  | Acc@5  | Acc@10 | MRR    |
-|--------------|--------|--------|--------|--------|
-| NYC          | 0.2734 | 0.5361 | 0.6244 | 0.3915 |
-| TKY          | 0.2950 | 0.5207 | 0.5980 | 0.3986 | 
-| CA           | 0.1730 | 0.3529 | 0.4191 | 0.2558 |
+| Dataset Name | Acc@1  | Acc@5  | Acc@10 | MRR    | #Parameters | Training Speed<br>(per epoch)|
+|--------------|--------|--------|--------|--------|-------------|------------------------------|
+| NYC          | 0.2734 | 0.5361 | 0.6244 | 0.3915 | 27,820,020  | 3m24s                        | 
+| TKY          | 0.2950 | 0.5207 | 0.5980 | 0.3986 | 30,167,576  | 59m31s                       |
+| CA           | 0.1730 | 0.3529 | 0.4191 | 0.2558 | 31,810,778  | 15m40s                       |
 
+The average performances of 10 runs can be achived using the script below. `-n` denotes the total number of experiments. `-g` 
+denotes the gpu id (default 0).
+```shell
+python multiple_run.py -f best_conf/{dataset_name}.yml -n 10 -g 0
+```
+
+| Dataset Name | Acc@1           | Acc@5           | Acc@10          | MRR             |
+|--------------|-----------------|-----------------|-----------------|-----------------|
+| NYC          | 0.2625 ± 0.0054 | 0.5226 ± 0.0033 | 0.6117 ± 0.0044 | 0.3798 ± 0.0041 |
+| TKY          | 0.2905 ± 0.0035 | 0.5184 ± 0.0035 | 0.5969 ± 0.0030 | 0.3951 ± 0.0025 |
+| CA           | 0.1652 ± 0.0036 | 0.3405 ± 0.0041 | 0.4177 ± 0.0038 | 0.2491 ± 0.0026 |
 
 ### Ablation Study
+Based on the configuration for best model in `conf/best_conf/`, we only modify some key configs to do ablation study.
+
++ For *w/o Hypergraph*, we set `model_name: seq_transformer`. It's worth to mension that we use the same NeighborSampler and 
+  transform the adjacency list into sequential input for Transformer model. So the inputs are the same with vanilla Transformer. Please run
+```shell
+python multiple_run.py -f ablation_conf/{dataset_name}_wo_hypergraph.yml -n 10 -g 0
+```
++ For *w/o ST Information*, we set `time_fusion_mode: `. Please run
+```shell
+python multiple_run.py -f ablation_conf/{dataset_name}_wo_st_info.yml -n 10 -g 0
+```
++ For *w/o Hyperedge Collaboration*, we set `do_traj2traj: False`
+```shell
+python multiple_run.py -f ablation_conf/{dataset_name}_wo_hyper_collab.yml -n 10 -g 0
+```
+
+The ablation results are list below, which are consistent though slightly different with Table 4 in our paper:
+
++ NYC:
+
+|                             | Acc@1           | Acc@5           | Acc@10          | MRR             |
+|-----------------------------|-----------------|-----------------|-----------------|-----------------|
+| Full Model                  | 0.2625 ± 0.0054 | 0.5226 ± 0.0033 | 0.6117 ± 0.0044 | 0.3798 ± 0.0041 |
+| w/o Hypergraph              | 0.2391 ± 0.0068 | 0.5137 ± 0.0094 | 0.6069 ± 0.0091 | 0.3618 ± 0.0050 |
+| w/o ST Information          | 0.2332 ± 0.0048 | 0.5113 ± 0.0039 | 0.6091 ± 0.0069 | 0.3591 ± 0.0034 |
+| w/o Hyperedge Collaboration | 0.2490 ± 0.0058 | 0.5048 ± 0.0098 | 0.5885 ± 0.0052 | 0.3641 ± 0.0055 |
+
++ TKY:
+
+|                             | Acc@1           | Acc@5           | Acc@10          | MRR             |
+|-----------------------------|-----------------|-----------------|-----------------|-----------------|
+| Full Model                  | 0.2905 ± 0.0035 | 0.5184 ± 0.0035 | 0.5969 ± 0.0030 | 0.3951 ± 0.0025 |
+| w/o Hypergraph              | 0.2368 ± 0.0018 | 0.4453 ± 0.0016 | 0.5222 ± 0.0015 | 0.3337 ± 0.0014 |
+| w/o ST Information          | 0.2629 ± 0.0051 | 0.4941 ± 0.0039 | 0.5770 ± 0.0030 | 0.3689 ± 0.0037 |
+| w/o Hyperedge Collaboration | 0.2455 ± 0.0027 | 0.4589 ± 0.0031 | 0.5361 ± 0.0026 | 0.3446 ± 0.0018 |
+
++ CA:
+
+|                             | Acc@1           | Acc@5           | Acc@10          | MRR             |
+|-----------------------------|-----------------|-----------------|-----------------|-----------------|
+| Full Model                  | 0.1652 ± 0.0036 | 0.3405 ± 0.0041 | 0.4177 ± 0.0038 | 0.2491 ± 0.0026 |
+| w/o Hypergraph              | 0.1476 ± 0.0031 | 0.3146 ± 0.0024 | 0.3859 ± 0.0051 | 0.2270 ± 0.0028 |
+| w/o ST Information          | 0.1578 ± 0.0042 | 0.3242 ± 0.0037 | 0.4021 ± 0.0054 | 0.2384 ± 0.0032 |
+| w/o Hyperedge Collaboration | 0.1538 ± 0.0028 | 0.3227 ± 0.0046 | 0.3917 ± 0.0045 | 0.2341 ± 0.0028 |
 
 ## Tensorboard
 All the measurements and visualizations can be displayed via tensorboard tool. The tensorboard files are 

@@ -1,6 +1,6 @@
 | group | argument | definition |
 |-------|----------|------------|
-|dataset_args|name|dataset name, choose from 'nyc', 'tky', and 'ca'|
+|dataset_args|dataset_name|dataset name, choose from 'nyc', 'tky', and 'ca'|
 | |min_poi_freq|the least value of one poi's checkin records, if less than or equal to this value, we will remove this poi|
 | |min_user_freq|the least value of one user's checkin records, if less than or equal to this value, we will remove this user|
 | |session_time_interval| the time interval of consecutive checkin records in every trajectory should be larger than or equal to this value |
@@ -11,7 +11,7 @@
 | |do_label_encode| whether to encode the id via LabelEncoder|
 | |only_last_metric| whether to use only the last checkin of every trajectory as sample to evaluate our model|
 | |max_d_epsilon| add this value to maximum distance to avoid bugs|
-|model_args|name|model name, choose from 'sthgcn' (our model) and 'seq_transformer' (for ablation study)|
+|model_args|model_name|model name, choose from 'sthgcn' (our model) and 'seq_transformer' (for ablation study)|
 | |intra_jaccard_threshold|the intra-user similarity threshold for hyperedge2hyperedge collaboration, only keep those collaborations whose similarities are larger than this value|
 | |inter_jaccard_threshold|the inter-user similarity threshold for hyperedge2hyperedge collaboration, only keep those collaborations whose similarities are larger than this value
 | |sizes|sample size for different hops, the last element is for checkin2trajectory, other elements is for multi-hop trajectory2trajectory. e.g. sizes=[10, 20, 30], [10,20] is for traj2traj 2-hop sampling, [30] is for ci2traj.|
@@ -37,13 +37,13 @@
 | |time_fusion_mode|the fusion mode of time vector, choose from 'concat' and 'add'|
 | |residual_fusion_mode|the fusion mode of gated residual module, choose from 'concat' and 'add'|
 | |negative_slope|the negative slope for leaky_relu activation function|
-|run_args|seed|random seed for generate randome number|
+|run_args|seed|random seed for generate random number, and reproduce the experiments. Not used for multiple-run setting.|
 | |gpu|gpu index, use cpu if set -1|
 | |batch_size|training batch size|
 | |eval_batch_size|evaluation batch size|
 | |learning_rate|the learning rate|
 | |do_train|whether to do training|
-| |do_valid|whether to do validation|
+| |do_validate|whether to do validation|
 | |do_test|whether to do testing|
 | |warm_up_steps|the warm up steps with constant initial learning rate|
 | |cooldown_rate|the cooldown rate for learning rate schedualing, make the learning rate approximate an exponential decay curve with respect to the global steps|
@@ -52,8 +52,6 @@
 | |valid_steps|do evaluating every valid_steps|
 | |num_workers|the total number of workers for dataloader|
 | |init_checkpoint|the checkpoint path|
-| |save_path|model and summary save path|
-| |log_path|the log path|
 |seq_transformer_args|only works when `model_args.name==seq_transformer`| |
 | |sequence_length |the max length of the sequences|
 | |header_num|the head number of multi-head|

@@ -1,5 +1,5 @@
 dataset_args:
-  name: tky
+  dataset_name: tky
   min_poi_freq: 9
   min_user_freq: 9
   session_time_interval: 1440
@@ -11,10 +11,10 @@ dataset_args:
   only_last_metric: True
   max_d_epsilon: 5
 model_args:
-  name: sthgcn
+  model_name: sthgcn
   intra_jaccard_threshold: 0.0
   inter_jaccard_threshold: 0.01
-  sizes: 300-240
+  sizes: 400-240
   dropout_rate: 0.1
   num_edge_type: 2
   generate_edge_attr: True
@@ -46,13 +46,13 @@ conv_args:
   residual_fusion_mode: add
   negative_slope: 0.2
 run_args:
-  seed:
+  seed: 54607333
   gpu: 0
   batch_size: 64
   eval_batch_size: 64
   learning_rate: 0.0001
   do_train: True
-  do_valid: True
+  do_validate: True
   do_test: True
   warm_up_steps: 48000
   cooldown_rate: 1.5
@@ -61,5 +61,3 @@ run_args:
   valid_steps: 4000
   num_workers: 4
   init_checkpoint:
-  save_path:
-  log_path:

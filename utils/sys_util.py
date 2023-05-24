@@ -23,6 +23,10 @@ def set_logger(args):
     else:
         log_file = osp.join(args.log_path or args.init_checkpoint, 'test.log')
 
+    # Remove all handlers associated with the root logger object
+    for handler in logging.root.handlers:
+        logging.root.removeHandler(handler)
+
     logging.basicConfig(
         format='%(asctime)s %(levelname)-8s %(message)s',
         level=logging.INFO,
@@ -30,11 +34,6 @@ def set_logger(args):
         filename=log_file,
         filemode='w+'
     )
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger('').addHandler(console)
 
 
 def seed_torch(seed=42):

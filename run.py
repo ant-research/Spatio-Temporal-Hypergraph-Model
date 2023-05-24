@@ -18,43 +18,14 @@ if __name__ == '__main__':
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--yaml_file', help='The configuration file.', required=True)
+    parser.add_argument('--multi_run_mode', help='Run multiple experiments with the same config.', action='store_true')
     args = parser.parse_args()
     conf_file = args.yaml_file
 
     cfg = Cfg(conf_file)
 
-    hparam_dict = dict(vars(cfg.run_args).items() | vars(cfg.conv_args).items() | vars(cfg.model_args).items() | vars(
-        cfg.dataset_args).items() | vars(cfg.seq_transformer_args).items())
     sizes = [int(i) for i in cfg.model_args.sizes.split('-')]
     cfg.model_args.sizes = sizes
-
-    if cfg.run_args.seed is None:
-        seed = random.randint(0, 1000000)
-    else:
-        seed = cfg.run_args.seed
-    seed_torch(seed)
-
-    current_time = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    if cfg.run_args.save_path is None:
-        save_path = f'tensorboard/{current_time}/{cfg.dataset_args.name}'
-    else:
-        save_path = cfg.run_args.save_path
-
-    if cfg.run_args.log_path is None:
-        log_path = f'log/{current_time}/{cfg.dataset_args.name}'
-    else:
-        log_path = cfg.run_args.log_path
-
-    cfg.run_args.save_path = save_path
-    cfg.run_args.log_path = log_path
-
-    if not osp.isdir(save_path):
-        os.makedirs(save_path)
-    if not osp.isdir(log_path):
-        os.makedirs(log_path)
-
-    set_logger(cfg.run_args)
-    summary_writer = SummaryWriter(log_dir=save_path)
 
     # cuda setting
     if int(cfg.run_args.gpu) >= 0:
@@ -62,6 +33,34 @@ if __name__ == '__main__':
     else:
         device = 'cpu'
     cfg.run_args.device = device
+
+    # for multiple runs, seed is replaced with random value
+    if args.multi_run_mode:
+        cfg.run_args.seed = None
+    if cfg.run_args.seed is None:
+        seed = random.randint(0, 100000000)
+    else:
+        seed = int(cfg.run_args.seed)
+
+    seed_torch(seed)
+
+    current_time = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    cfg.run_args.save_path = f'tensorboard/{current_time}/{cfg.dataset_args.dataset_name}'
+    cfg.run_args.log_path = f'log/{current_time}/{cfg.dataset_args.dataset_name}'
+
+    if not osp.isdir(cfg.run_args.save_path):
+        os.makedirs(cfg.run_args.save_path)
+    if not osp.isdir(cfg.run_args.log_path):
+        os.makedirs(cfg.run_args.log_path)
+
+    set_logger(cfg.run_args)
+    summary_writer = SummaryWriter(log_dir=cfg.run_args.save_path)
+
+    hparam_dict = {}
+    for group, hparam in cfg.__dict__.items():
+        hparam_dict.update(hparam.__dict__)
+    hparam_dict['seed'] = seed
+    hparam_dict['sizes'] = '-'.join([str(item) for item in cfg.model_args.sizes])
 
     # Preprocess data
     preprocess(cfg)
@@ -79,30 +78,77 @@ if __name__ == '__main__':
     cfg.dataset_args.padding_weekday_id = lbsn_dataset.padding_weekday_id
 
     # Initialize neighbor sampler(dataloader)
-    sample_result_train = NeighborSampler(
-        lbsn_dataset.x,
-        lbsn_dataset.edge_index,
-        lbsn_dataset.edge_attr,
-        intra_jaccard_threshold=cfg.model_args.intra_jaccard_threshold,
-        inter_jaccard_threshold=cfg.model_args.inter_jaccard_threshold,
-        edge_t=lbsn_dataset.edge_t,
-        edge_delta_t=lbsn_dataset.edge_delta_t,
-        edge_type=lbsn_dataset.edge_type,
-        sizes=sizes,
-        sample_idx=lbsn_dataset.sample_idx_train,
-        node_idx=lbsn_dataset.node_idx_train,
-        edge_delta_s=lbsn_dataset.edge_delta_s,
-        max_time=lbsn_dataset.max_time_train,
-        label=lbsn_dataset.label_train,
-        batch_size=cfg.run_args.batch_size,
-        num_workers=0 if device == 'cpu' else cfg.run_args.num_workers,
-        shuffle=True,
-        pin_memory=True
-    )
+    sampler_train, sampler_validate, sampler_test = None, None, None
 
-    if cfg.model_args.name == 'sthgcn':
+    if cfg.run_args.do_train:
+        sampler_train = NeighborSampler(
+            lbsn_dataset.x,
+            lbsn_dataset.edge_index,
+            lbsn_dataset.edge_attr,
+            intra_jaccard_threshold=cfg.model_args.intra_jaccard_threshold,
+            inter_jaccard_threshold=cfg.model_args.inter_jaccard_threshold,
+            edge_t=lbsn_dataset.edge_t,
+            edge_delta_t=lbsn_dataset.edge_delta_t,
+            edge_type=lbsn_dataset.edge_type,
+            sizes=sizes,
+            sample_idx=lbsn_dataset.sample_idx_train,
+            node_idx=lbsn_dataset.node_idx_train,
+            edge_delta_s=lbsn_dataset.edge_delta_s,
+            max_time=lbsn_dataset.max_time_train,
+            label=lbsn_dataset.label_train,
+            batch_size=cfg.run_args.batch_size,
+            num_workers=0 if device == 'cpu' else cfg.run_args.num_workers,
+            shuffle=True,
+            pin_memory=True
+        )
+
+    if cfg.run_args.do_validate:
+        sampler_validate = NeighborSampler(
+            lbsn_dataset.x,
+            lbsn_dataset.edge_index,
+            lbsn_dataset.edge_attr,
+            intra_jaccard_threshold=cfg.model_args.intra_jaccard_threshold,
+            inter_jaccard_threshold=cfg.model_args.inter_jaccard_threshold,
+            edge_t=lbsn_dataset.edge_t,
+            edge_delta_t=lbsn_dataset.edge_delta_t,
+            edge_type=lbsn_dataset.edge_type,
+            sizes=sizes,
+            sample_idx=lbsn_dataset.sample_idx_valid,
+            node_idx=lbsn_dataset.node_idx_valid,
+            edge_delta_s=lbsn_dataset.edge_delta_s,
+            max_time=lbsn_dataset.max_time_valid,
+            label=lbsn_dataset.label_valid,
+            batch_size=cfg.run_args.eval_batch_size,
+            num_workers=0 if device == 'cpu' else cfg.run_args.num_workers,
+            shuffle=False,
+            pin_memory=True
+        )
+
+    if cfg.run_args.do_test:
+        sampler_test = NeighborSampler(
+            lbsn_dataset.x,
+            lbsn_dataset.edge_index,
+            lbsn_dataset.edge_attr,
+            intra_jaccard_threshold=cfg.model_args.intra_jaccard_threshold,
+            inter_jaccard_threshold=cfg.model_args.inter_jaccard_threshold,
+            edge_t=lbsn_dataset.edge_t,
+            edge_delta_t=lbsn_dataset.edge_delta_t,
+            edge_type=lbsn_dataset.edge_type,
+            sizes=sizes,
+            sample_idx=lbsn_dataset.sample_idx_test,
+            node_idx=lbsn_dataset.node_idx_test,
+            edge_delta_s=lbsn_dataset.edge_delta_s,
+            max_time=lbsn_dataset.max_time_test,
+            label=lbsn_dataset.label_test,
+            batch_size=cfg.run_args.eval_batch_size,
+            num_workers=0 if device == 'cpu' else cfg.run_args.num_workers,
+            shuffle=False,
+            pin_memory=True
+        )
+
+    if cfg.model_args.model_name == 'sthgcn':
         model = STHGCN(cfg)
-    elif cfg.model_args.name == 'seq_transformer':
+    elif cfg.model_args.model_name == 'seq_transformer':
         model = SequentialTransformer(cfg)
     else:
         raise NotImplementedError(
@@ -155,7 +201,7 @@ if __name__ == '__main__':
             training_logs = []
             if global_step >= cfg.run_args.max_steps:
                 break
-            for data in tqdm(sample_result_train):
+            for data in tqdm(sampler_train):
                 model.train()
                 split_index = torch.max(data.adjs_t[1].storage.row()).tolist()
                 data = data.to(device)
@@ -176,31 +222,11 @@ if __name__ == '__main__':
                 optimizer.step()
                 summary_writer.add_scalar(f'train/loss_step', loss, global_step)
 
-                if cfg.run_args.do_valid and global_step % cfg.run_args.valid_steps == 0:
+                if cfg.run_args.do_validate and global_step % cfg.run_args.valid_steps == 0:
                     logging.info(f'[Evaluating] Evaluating on Valid Dataset...')
 
-                    sample_result_valid = NeighborSampler(
-                        lbsn_dataset.x,
-                        lbsn_dataset.edge_index,
-                        lbsn_dataset.edge_attr,
-                        intra_jaccard_threshold=cfg.model_args.intra_jaccard_threshold,
-                        inter_jaccard_threshold=cfg.model_args.inter_jaccard_threshold,
-                        edge_t=lbsn_dataset.edge_t,
-                        edge_delta_t=lbsn_dataset.edge_delta_t,
-                        edge_type=lbsn_dataset.edge_type,
-                        sizes=sizes,
-                        sample_idx=lbsn_dataset.sample_idx_valid,
-                        node_idx=lbsn_dataset.node_idx_valid,
-                        edge_delta_s=lbsn_dataset.edge_delta_s,
-                        max_time=lbsn_dataset.max_time_valid,
-                        label=lbsn_dataset.label_valid,
-                        batch_size=cfg.run_args.eval_batch_size,
-                        num_workers=0 if device == 'cpu' else cfg.run_args.num_workers,
-                        shuffle=False,
-                        pin_memory=True
-                    )
                     logging.info(f'[Evaluating] Epoch {eph}, step {global_step}:')
-                    recall_res, ndcg_res, map_res, mrr_res, eval_loss = test_step(model, data=sample_result_valid)
+                    recall_res, ndcg_res, map_res, mrr_res, eval_loss = test_step(model, data=sampler_validate)
                     summary_writer.add_scalar(f'validate/Recall@1', 100*recall_res[1], global_step)
                     summary_writer.add_scalar(f'validate/Recall@5', 100*recall_res[5], global_step)
                     summary_writer.add_scalar(f'validate/Recall@10', 100*recall_res[10], global_step)
@@ -244,29 +270,10 @@ if __name__ == '__main__':
 
     if cfg.run_args.do_test:
         logging.info('[Evaluating] Start evaluating on test set...')
-        sample_result_test = NeighborSampler(
-            lbsn_dataset.x,
-            lbsn_dataset.edge_index,
-            lbsn_dataset.edge_attr,
-            intra_jaccard_threshold=cfg.model_args.intra_jaccard_threshold,
-            inter_jaccard_threshold=cfg.model_args.inter_jaccard_threshold,
-            edge_t=lbsn_dataset.edge_t,
-            edge_delta_t=lbsn_dataset.edge_delta_t,
-            edge_type=lbsn_dataset.edge_type,
-            sizes=sizes,
-            sample_idx=lbsn_dataset.sample_idx_test,
-            node_idx=lbsn_dataset.node_idx_test,
-            edge_delta_s=lbsn_dataset.edge_delta_s,
-            max_time=lbsn_dataset.max_time_test,
-            label=lbsn_dataset.label_test,
-            batch_size=cfg.run_args.eval_batch_size,
-            num_workers=0 if device == 'cpu' else cfg.run_args.num_workers,
-            shuffle=False,
-            pin_memory=True
-        )
+
         checkpoint = torch.load(osp.join(cfg.run_args.save_path, 'checkpoint.pt'))
         model.load_state_dict(checkpoint['model_state_dict'])
-        recall_res, ndcg_res, map_res, mrr_res, loss = test_step(model, sample_result_test)
+        recall_res, ndcg_res, map_res, mrr_res, loss = test_step(model, sampler_test)
         num_params = count_parameters(model)
         metric_dict = {
             'hparam/num_params': num_params,

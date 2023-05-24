@@ -24,7 +24,7 @@ model_args:
   activation: relu
   phase_factor: 5
   use_linear_trans: True
-  do_traj2traj: True
+  do_traj2traj: False
   distance_encoder_type: time
   quantile: 0.85
 seq_transformer_args:
@@ -46,7 +46,7 @@ conv_args:
   residual_fusion_mode: add
   negative_slope: 0.2
 run_args:
-  seed: 27486607
+  seed:
   gpu: 0
   batch_size: 64
   eval_batch_size: 64

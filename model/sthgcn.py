@@ -48,7 +48,7 @@ class STHGCN(nn.Module):
         if cfg.conv_args.time_fusion_mode == 'add':
             continuous_encoder_dim = self.checkin_embed_size
         else:
-            continuous_encoder_dim = cfg.model_args.st_embedding_size
+            continuous_encoder_dim = cfg.model_args.st_embed_size
 
         if self.generate_edge_attr:
             # use edge_type to create edge_attr_embed

@@ -18,6 +18,9 @@ def save_model(model, optimizer, save_variable_list, run_args, argparse_dict):
     as well as some other variables such as step and learning_rate
     """
     with open(osp.join(run_args.log_path, 'config.json'), 'w') as fjson:
+        for key, value in argparse_dict.items():
+            if isinstance(value, torch.Tensor):
+                argparse_dict[key] = value.numpy().tolist()
         json.dump(argparse_dict, fjson)
 
     torch.save({

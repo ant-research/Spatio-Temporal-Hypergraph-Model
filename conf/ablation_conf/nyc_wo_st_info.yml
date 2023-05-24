@@ -1,5 +1,5 @@
 dataset_args:
-  dataset_name: ca
+  dataset_name: nyc
   min_poi_freq: 9
   min_user_freq: 9
   session_time_interval: 1440
@@ -13,8 +13,8 @@ dataset_args:
 model_args:
   model_name: sthgcn
   intra_jaccard_threshold: 0.0
-  inter_jaccard_threshold: 0.01
-  sizes: 300-600
+  inter_jaccard_threshold: 0.005
+  sizes: 300-500
   dropout_rate: 0.1
   num_edge_type: 2
   generate_edge_attr: True
@@ -42,11 +42,11 @@ conv_args:
   trans_method: add
   edge_fusion_mode: add
   head_fusion_mode: concat
-  time_fusion_mode: add
+  time_fusion_mode:
   residual_fusion_mode: add
   negative_slope: 0.2
 run_args:
-  seed: 27486607
+  seed:
   gpu: 0
   batch_size: 64
   eval_batch_size: 64
@@ -54,8 +54,8 @@ run_args:
   do_train: True
   do_validate: True
   do_test: True
-  warm_up_steps: 14000
-  cooldown_rate: 1.4
+  warm_up_steps: 8000
+  cooldown_rate: 1.5
   max_steps: 100000
   epoch: 20
   valid_steps: 500

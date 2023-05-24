@@ -66,18 +66,18 @@ def preprocess_nyc(path: bytes, preprocessed_path: bytes) -> pd.DataFrame:
 
 
 def preprocess_tky_ca(cfg: Cfg, path: bytes) -> pd.DataFrame:
-    if cfg.dataset_args.name == 'tky':
+    if cfg.dataset_args.dataset_name == 'tky':
         raw_file = 'dataset_TSMC2014_TKY.txt'
     else:
         raw_file = 'dataset_gowalla_ca_ne.csv'
 
     FileReader.root_path = path
-    data = FileReader.read_dataset(raw_file, cfg.dataset_args.name)
+    data = FileReader.read_dataset(raw_file, cfg.dataset_args.dataset_name)
     data = FileReader.do_filter(data, cfg.dataset_args.min_poi_freq, cfg.dataset_args.min_user_freq)
     data = FileReader.split_train_test(data)
 
     # for ca dataset, after one round of filter, there still be many low frequency pois and users, so do twice
-    if cfg.dataset_args.name == 'ca':
+    if cfg.dataset_args.dataset_name == 'ca':
         data = FileReader.do_filter(data, cfg.dataset_args.min_poi_freq, cfg.dataset_args.min_user_freq)
         data = FileReader.split_train_test(data)
 
@@ -92,7 +92,7 @@ def preprocess_tky_ca(cfg: Cfg, path: bytes) -> pd.DataFrame:
 
 def preprocess(cfg: Cfg):
     root_path = get_root_dir()
-    dataset_name = cfg.dataset_args.name
+    dataset_name = cfg.dataset_args.dataset_name
     data_path = osp.join(root_path, 'data', dataset_name)
     preprocessed_path = osp.join(data_path, 'preprocessed')
     sample_file = osp.join(preprocessed_path, 'sample.csv')

@@ -7,7 +7,7 @@ from utils import get_root_dir, construct_slots
 
 class LBSNDataset:
     def __init__(self, cfg):
-        self.data_path = osp.join(get_root_dir(), 'data', cfg.dataset_args.name, 'preprocessed')
+        self.data_path = osp.join(get_root_dir(), 'data', cfg.dataset_args.dataset_name, 'preprocessed')
         self.padding_poi_id, self.padding_poi_category, self.padding_user_id = 0, 0, 0
         self.padding_hour_id, self.padding_weekday_id = 0, 0
         self.num_user, self.num_poi, self.num_category, self.num_checkin, self.num_traj = 0, 0, 0, 0, 0
