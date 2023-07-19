@@ -108,27 +108,26 @@ def preprocess(cfg: Cfg):
 
     if not osp.exists(preprocessed_path):
         os.makedirs(preprocessed_path)
-    else:
-        logging.info('[Preprocess] Preprocessed directory already exists, skip preprocessing.')
-        return
 
     # Step 1. preprocess raw files and create sample files including
     # 1. data transformation; 2. id encoding; 3.train/validate/test splitting; 4. remove unseen user or poi
-    if 'nyc' == dataset_name:
-        keep_cols += ['trajectory_id']
-        preprocessed_data = preprocess_nyc(data_path, preprocessed_path)
-    elif 'tky' == dataset_name or 'ca' == dataset_name:
-        preprocessed_data = preprocess_tky_ca(cfg, data_path)
-    else:
-        raise ValueError(f'Wrong dataset name: {dataset_name} ')
+    if not osp.exists(sample_file):
+        if 'nyc' == dataset_name:
+            keep_cols += ['trajectory_id']
+            preprocessed_data = preprocess_nyc(data_path, preprocessed_path)
+        elif 'tky' == dataset_name or 'ca' == dataset_name:
+            preprocessed_data = preprocess_tky_ca(cfg, data_path)
+        else:
+            raise ValueError(f'Wrong dataset name: {dataset_name} ')
 
-    preprocessed_result = remove_unseen_user_poi(preprocessed_data)
-    preprocessed_result['sample'].to_csv(sample_file, index=False)
-    preprocessed_result['train_sample'][keep_cols].to_csv(train_file, index=False)
-    preprocessed_result['validate_sample'][keep_cols].to_csv(validate_file, index=False)
-    preprocessed_result['test_sample'][keep_cols].to_csv(test_file, index=False)
+        preprocessed_result = remove_unseen_user_poi(preprocessed_data)
+        preprocessed_result['sample'].to_csv(sample_file, index=False)
+        preprocessed_result['train_sample'][keep_cols].to_csv(train_file, index=False)
+        preprocessed_result['validate_sample'][keep_cols].to_csv(validate_file, index=False)
+        preprocessed_result['test_sample'][keep_cols].to_csv(test_file, index=False)
 
     # Step 2. generate hypergraph related data
-    generate_hypergraph_from_file(sample_file, preprocessed_path, cfg.dataset_args)
+    if not osp.exists(osp.join(preprocessed_path, 'ci2traj_pyg_data.pt')):
+        generate_hypergraph_from_file(sample_file, preprocessed_path, cfg.dataset_args)
 
     logging.info('[Preprocess] Done preprocessing.')
